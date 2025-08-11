@@ -1,17 +1,15 @@
-// Fichier : lib/auth.ts  (C'EST LE NOUVEAU FICHIER)
+// Fichier : lib/auth.ts
 
 import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcrypt';
 
-// L'initialisation du client et les options sont maintenant dans ce fichier dédié
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// C'est votre grand bloc de configuration. Il vit maintenant ici.
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({

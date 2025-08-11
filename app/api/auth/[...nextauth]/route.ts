@@ -1,9 +1,8 @@
-// Fichier : app/api/auth/[...nextauth]/route.ts (C'EST LE FICHIER À REMPLACER)
+// Fichier : app/api/auth/[...nextauth]/route.ts
 
 import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth"; // On importe la grosse configuration
+import { authOptions } from "@/lib/auth"; // Il importe la configuration
 
-// Ce fichier ne fait plus qu'une seule chose : créer le handler. C'est ce que Vercel veut.
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
