@@ -25,7 +25,7 @@ export default function HomePage() {
             </Link>
             
             {/* AJOUTEZ CE LIEN CI-DESSOUS */}
-            <Link href="/marche" className="text-purple-400 font-semibold hover:text-purple-300 transition-colors">
+            <Link href="/marketplace" className="text-purple-400 font-semibold hover:text-purple-300 transition-colors">
               Explorer le Marché
             </Link>
           </div>
