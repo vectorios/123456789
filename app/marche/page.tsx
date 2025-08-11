@@ -1,4 +1,5 @@
 // app/marche/page.tsx
+
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
@@ -16,6 +17,7 @@ interface Listing {
   } | null;
 }
 
+// Fonction corrigée et plus robuste pour récupérer les annonces
 async function getActiveListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from('market_listings')
@@ -24,7 +26,13 @@ async function getActiveListings(): Promise<Listing[]> {
     .eq('listing_type', 'fixed_price')
     .order('created_at', { ascending: false });
 
-  if (error) return [];
+  // CORRECTION : On gère à la fois le cas d'une erreur ET le cas où data est null.
+  if (error || !data) {
+    console.error("Erreur de récupération des annonces du marché ou aucune donnée retournée:", error);
+    return [];
+  }
+
+  // Cette ligne garantit que nous ne renvoyons que des annonces valides avec une couleur.
   return data.filter((listing): listing is Listing => listing.colors !== null);
 }
 
