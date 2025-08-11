@@ -19,6 +19,9 @@ export default function HomePage() {
           >
             Devenir Gardien - C'est Gratuit
           </Link>
+                    <Link href="/connexion" className="text-neutral-400 hover:text-white transition-colors">
+            Déjà Gardien ? Se connecter
+          </Link>
         </div>
         <p className="mt-4 text-sm text-neutral-500">Pour toujours.</p>
       </div>

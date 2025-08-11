@@ -1,15 +1,18 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { createClient } from '@supabase/supabase-js'
-import bcrypt from 'bcrypt'
 
+import NextAuth, { AuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcrypt';
+
+// Initialisation du client Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const handler = NextAuth({
+// Configuration exportable pour NextAuth, réutilisable dans d'autres parties de l'application
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -17,30 +20,30 @@ const handler = NextAuth({
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        // 1. Chercher l'utilisateur dans la base de données
-        const { data: user, error } = await supabase
+        // Chercher l'utilisateur
+        const { data: user } = await supabase
           .from('users')
           .select('*')
           .eq('email', credentials.email)
           .single();
 
         if (!user) {
-          return null; // Utilisateur non trouvé
+          return null;
         }
 
-        // 2. Vérifier le mot de passe
+        // Vérifier le mot de passe
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password_hash);
 
         if (!isPasswordValid) {
-          return null; // Mot de passe incorrect
+          return null;
         }
 
-        // 3. Renvoyer l'objet utilisateur (sans le hash du mot de passe)
+        // Renvoyer l'objet utilisateur si tout est correct
         return {
           id: user.id,
           email: user.email,
@@ -50,20 +53,15 @@ const handler = NextAuth({
     })
   ],
   callbacks: {
-    // Le callback 'jwt' est appelé avant le callback 'session'
+    // Ce callback enrichit le token JWT avec l'ID de l'utilisateur
     jwt: async ({ token, user }) => {
-      // Si l'objet 'user' existe (il n'existe que lors de la connexion initiale),
-      // on ajoute son ID au token.
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    // Le callback 'session' est appelé pour construire l'objet session
-    // qui sera accessible côté client.
+    // Ce callback enrichit la session (accessible côté client) avec l'ID du token
     session: async ({ session, token }) => {
-      // On ajoute l'ID du token (que nous avons défini dans le callback 'jwt')
-      // à l'objet session.
       if (session.user) {
         session.user.id = token.id as string;
       }
@@ -71,12 +69,17 @@ const handler = NextAuth({
     },
   },
   pages: {
-    signIn: '/connexion', // On créera cette page plus tard
+    // Redirige les utilisateurs vers notre page de connexion personnalisée
+    signIn: '/connexion',
   },
   session: {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
 
-export { handler as GET, handler as POST }
+// Création du handler NextAuth à partir des options
+const handler = NextAuth(authOptions);
+
+// Exportation du handler pour les méthodes GET et POST
+export { handler as GET, handler as POST };

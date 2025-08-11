@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react'; // Importez la fonction signIn
 
 // Schéma de validation avec Zod
 const formSchema = z.object({
@@ -30,6 +31,7 @@ export default function InscriptionPage() {
     setError(null);
 
     try {
+      // Étape 1 : Créer l'utilisateur via notre API
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -39,10 +41,22 @@ export default function InscriptionPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Une erreur s'est produite.");
+        throw new Error(result.error || "Une erreur s'est produite lors de la création.");
       }
       
-      // La magie opère : on redirige vers la page de révélation
+      // Étape 2 : Connecter l'utilisateur automatiquement !
+      const signInResponse = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false, // Très important : on gère la redirection nous-mêmes
+      });
+
+      if (signInResponse?.error) {
+        // Si la connexion échoue (très peu probable si l'inscription a réussi)
+        throw new Error("Erreur lors de la connexion automatique après inscription.");
+      }
+
+      // Étape 3 : Rediriger vers la page de bienvenue
       const colorHex = result.color_hex.replace('#', '');
       router.push(`/bienvenue/${colorHex}`);
 
@@ -80,7 +94,7 @@ export default function InscriptionPage() {
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           
           <button type="submit" disabled={isLoading} className="w-full py-3 font-semibold bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-neutral-600 disabled:cursor-not-allowed transition-colors">
-            {isLoading ? 'Nous trouvons votre couleur...' : 'Dévoiler ma Couleur'}
+            {isLoading ? 'Attribution en cours...' : 'Dévoiler ma Couleur'}
           </button>
         </form>
       </div>

@@ -3,15 +3,14 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { createClient } from '@supabase/supabase-js'
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton"; // On créera ce composant
+import { LogoutButton } from "@/components/LogoutButton";
+import { authOptions } from "../api/auth/[...nextauth]/route"; // Importez les options
 
-// Crée un client Supabase pour les opérations côté serveur
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Interface pour typer les données de couleur
 interface OwnedColor {
   id: number;
   hex_code: string;
@@ -19,8 +18,8 @@ interface OwnedColor {
   is_for_sale: boolean;
 }
 
-// Fonction pour récupérer les couleurs de l'utilisateur
 async function getUserColors(userId: string): Promise<OwnedColor[]> {
+  console.log("DASHBOARD: Recherche des couleurs pour l'utilisateur ID:", userId); // Log de débogage
   const { data, error } = await supabase
     .from('colors')
     .select('id, hex_code, name, is_for_sale')
@@ -28,20 +27,21 @@ async function getUserColors(userId: string): Promise<OwnedColor[]> {
     .order('id', { ascending: true });
   
   if (error) {
-    console.error("Erreur lors de la récupération des couleurs:", error);
+    console.error("DASHBOARD: Erreur Supabase:", error);
     return [];
   }
   return data;
 }
 
 export default async function DashboardPage() {
-  const session = await getServerSession(); // Récupère la session côté serveur
+  // UTILISEZ LES OPTIONS ICI
+  const session = await getServerSession(authOptions); 
 
-  // Si pas de session, on redirige vers la page d'accueil ou de connexion
   if (!session || !session.user) {
-    redirect('/'); 
+    redirect('/connexion'); 
   }
 
+  // Avec les authOptions, session.user.id est maintenant garanti d'exister si la session est valide.
   const userId = session.user.id;
   const colors = await getUserColors(userId);
 
