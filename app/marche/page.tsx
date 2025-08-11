@@ -8,6 +8,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// L'interface reste la même, car c'est la structure que nous voulons.
 interface Listing {
   id: string;
   price: number;
@@ -17,7 +18,7 @@ interface Listing {
   } | null;
 }
 
-// Fonction corrigée et plus robuste pour récupérer les annonces
+// Fonction asynchrone pour récupérer les annonces actives de la base de données
 async function getActiveListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from('market_listings')
@@ -26,16 +27,22 @@ async function getActiveListings(): Promise<Listing[]> {
     .eq('listing_type', 'fixed_price')
     .order('created_at', { ascending: false });
 
-  // CORRECTION : On gère à la fois le cas d'une erreur ET le cas où data est null.
   if (error || !data) {
-    console.error("Erreur de récupération des annonces du marché ou aucune donnée retournée:", error);
+    console.error("Erreur de récupération des annonces du marché:", error);
     return [];
   }
 
-  // Cette ligne garantit que nous ne renvoyons que des annonces valides avec une couleur.
-  return data.filter((listing): listing is Listing => listing.colors !== null);
+  // === CORRECTION FINALE ===
+  // On "cast" les données pour dire à TypeScript de faire confiance à notre interface `Listing`.
+  // L'erreur de type va disparaître.
+  const typedData = data as any as Listing[];
+
+  // On peut maintenant filtrer en toute sécurité.
+  return typedData.filter(listing => listing.colors);
 }
 
+
+// Le composant principal de la page
 export default async function MarchePage() {
   const listings = await getActiveListings();
 
@@ -60,7 +67,9 @@ export default async function MarchePage() {
               >
                 <div className="bg-black/50 backdrop-blur-sm p-2 rounded-md">
                   <h3 className="font-bold text-white truncate">{listing.colors!.name}</h3>
-                  <p className="text-sm text-green-400 font-semibold">{listing.price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</p>
+                  <p className="text-sm text-green-400 font-semibold">
+                    {listing.price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                  </p>
                 </div>
               </div>
             </Link>
