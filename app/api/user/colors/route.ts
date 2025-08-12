@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth"; // Assurez-vous que ce chemin est correct
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -11,7 +11,6 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
-  // 1. Sécurité : Vérifier la session de l'utilisateur qui fait la demande
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -20,7 +19,6 @@ export async function GET(req: NextRequest) {
   try {
     const userId = session.user.id;
 
-    // 2. Aller chercher les couleurs dans la base de données
     const { data, error } = await supabase
       .from('colors')
       .select('id, hex_code, name, is_for_sale')
@@ -28,14 +26,14 @@ export async function GET(req: NextRequest) {
       .order('id', { ascending: true });
 
     if (error) {
+      console.error("Erreur Supabase dans /api/user/colors:", error);
       throw error;
     }
 
-    // 3. Renvoyer les données
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error("Erreur API /user/colors:", error);
+    console.error("Erreur interne API /user/colors:", error);
     return NextResponse.json({ error: "Une erreur interne est survenue." }, { status: 500 });
   }
 }

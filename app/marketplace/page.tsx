@@ -1,4 +1,4 @@
-// app/marche/page.tsx
+// app/marketplace/page.tsx
 
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
@@ -8,37 +8,28 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// L'interface reste la même, car c'est la structure que nous voulons.
+// Interface pour définir la structure des données retournées par la fonction SQL
+// Notez que les noms des colonnes ici correspondent aux alias définis dans la fonction SQL
 interface Listing {
   id: string;
   price: number;
-  colors: {
-    hex_code: string;
-    name: string;
-  } | null;
+  color_hex: string; // Vient de la fonction SQL
+  color_name: string; // Vient de la fonction SQL
 }
 
-// Fonction asynchrone pour récupérer les annonces actives de la base de données
+// Fonction asynchrone pour récupérer les annonces en appelant la fonction SQL
 async function getActiveListings(): Promise<Listing[]> {
-  const { data, error } = await supabase
-    .from('market_listings')
-    .select(`id, price, colors ( hex_code, name )`)
-    .eq('is_active', true)
-    .eq('listing_type', 'fixed_price')
-    .order('created_at', { ascending: false });
+  console.log("MARKETPLACE API: Appel de la fonction SQL get_active_market_listings...");
+  const { data, error } = await supabase.rpc('get_active_market_listings'); // APPEL DE LA FONCTION SQL
 
   if (error || !data) {
-    console.error("Erreur de récupération des annonces du marché:", error);
+    console.error("MARKETPLACE API: Erreur lors de l'appel SQL ou aucune donnée retournée:", error);
     return [];
   }
 
-  // === CORRECTION FINALE ===
-  // On "cast" les données pour dire à TypeScript de faire confiance à notre interface `Listing`.
-  // L'erreur de type va disparaître.
-  const typedData = data as any as Listing[];
-
-  // On peut maintenant filtrer en toute sécurité.
-  return typedData.filter(listing => listing.colors);
+  console.log("MARKETPLACE API: Annonces récupérées depuis la fonction SQL:", data.length, data);
+  // Aucune autre filtration n'est nécessaire ici car la fonction SQL le fait déjà
+  return data;
 }
 
 
@@ -60,13 +51,14 @@ export default async function MarchePage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
           {listings.map((listing) => (
-            <Link key={listing.id} href={`/marche/${listing.id}`} className="group">
+            // Note: Le lien pointe vers /marketplace/[id]
+            <Link key={listing.id} href={`/marketplace/${listing.id}`} className="group">
               <div 
                 className="aspect-square rounded-lg shadow-lg flex flex-col justify-end p-4 transition-transform group-hover:scale-105"
-                style={{ backgroundColor: listing.colors!.hex_code }}
+                style={{ backgroundColor: listing.color_hex }} // Utilisation de color_hex
               >
                 <div className="bg-black/50 backdrop-blur-sm p-2 rounded-md">
-                  <h3 className="font-bold text-white truncate">{listing.colors!.name}</h3>
+                  <h3 className="font-bold text-white truncate">{listing.color_name}</h3> {/* Utilisation de color_name */}
                   <p className="text-sm text-green-400 font-semibold">
                     {listing.price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                   </p>
