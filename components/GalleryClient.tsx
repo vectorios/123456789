@@ -10,7 +10,7 @@ export interface OwnedColor {
   hex_code: string;
   name: string;
   is_for_sale: boolean;
-}
+}  
 
 // Le composant SellModal est déplacé ici
 function SellModal({ color, onClose, onListingSuccess }: { color: OwnedColor, onClose: () => void, onListingSuccess: () => void }) {
