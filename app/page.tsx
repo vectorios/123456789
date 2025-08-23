@@ -2,258 +2,157 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import Image from 'next/image';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { translations } from '@/lib/translations';
 
-
+// --- Composant d'Icône ---
 const FeatureIcon = ({ children }: { children: React.ReactNode }) => (
-  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">{children}</div>
+  <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} viewport={{ once: true, amount: 0.5 }} transition={{ type: "spring", stiffness: 200, damping: 10 }} className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 text-purple-600 shadow-lg">{children}</motion.div>
 );
 
-// Checkmark for comparison tables and feature lists
-const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-);
+// --- Fonctions des Drapeaux ---
+const FLAG_CELL_SIZE_VW_DESKTOP = 0.7; const FLAG_ROWS_PER_FLAG_USA = 10; const FLAG_COLS_PER_FLAG_USA = 25; const FLAG_ROWS_PER_FLAG_MOROCCO = 10; const FLAG_COLS_PER_FLAG_MOROCCO = 20; const FLAG_ROWS_PER_FLAG_CHINA = 10; const FLAG_COLS_PER_FLAG_CHINA = 25;
+const getUSAFlagColor = (r: number, c: number): string => { const R = '#B22234', W = '#FFFFFF', B = '#3C3B6E'; const cW = Math.floor(FLAG_COLS_PER_FLAG_USA * (2 / 5)), cH = Math.floor(FLAG_ROWS_PER_FLAG_USA / 2); if (r < cH && c < cW) { if ((r + c) % 2 === 0) return W; return B; } return r % 2 === 0 ? R : W; };
+const getMoroccoFlagColor = (r: number, c: number): string => { const R = '#C1272D', G = '#006233'; const cX = FLAG_COLS_PER_FLAG_MOROCCO / 2 - 0.5, cY = FLAG_ROWS_PER_FLAG_MOROCCO / 2 - 0.5; const rad = Math.min(FLAG_COLS_PER_FLAG_MOROCCO, FLAG_ROWS_PER_FLAG_MOROCCO) * 0.25; if (Math.sqrt(Math.pow(r - cY, 2) + Math.pow(c - cX, 2)) < rad) { if (Math.cos(5 * Math.atan2(r - cY, c - cX)) > 0.6) return G; } return R; };
+const getChinaFlagColor = (r: number, c: number): string => { const R = '#EE1C25', Y = '#FFFF00'; const stars = [{ r: 2, c: 3, size: 2 }, { r: 1, c: 6, size: 1 }, { r: 3, c: 7, size: 1 }, { r: 5, c: 6, size: 1 }, { r: 6, c: 4, size: 1 },]; for (const s of stars) { if (Math.sqrt(Math.pow(r - s.r, 2) + Math.pow(c - s.c, 2)) < s.size) return Y; } return R; };
 
-// X Icon for comparison tables
-const XIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-);
-
-// Main Homepage Component
+// --- Composant Principal de la Page d'Accueil ---
 export default function HomePage() {
-  const [hoveredColor, setHoveredColor] = useState('#3C3B6E'); // Start with USA blue
-
-  const fadeIn = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
-  };
-
-  const getColorForCell = (index: number): string => {
-    const row = Math.floor(index / 16);
-    const col = index % 16;
-
-    const USA_RED = '#B22234';
-    const USA_WHITE = '#FFFFFF';
-    const USA_BLUE = '#3C3B6E';
-    const CHINA_RED = '#EE1C25';
-    const CHINA_YELLOW = '#FFFF00';
-
-    if (row < 8) {
-      if (row < 4 && col < 6) {
-        return USA_BLUE;
-      }
-      if (row % 2 === 0) {
-        return USA_RED; // Even rows are red
-      } else {
-        return USA_WHITE; // Odd rows are white
-      }
-    } 
-    else {
-      const starPositions = [
-        { r: 9, c: 2 },   // Large star
-        { r: 8, c: 5 },   // Small star 1
-        { r: 10, c: 6 },  // Small star 2
-        { r: 12, c: 5 },  // Small star 3
-        { r: 13, c: 3 }   // Small star 4
-      ];
-      if (starPositions.some(pos => pos.r === row && pos.c === col)) {
-        return CHINA_YELLOW;
-      }
-      return CHINA_RED;
-    }
-  };
+  const { currentLang } = useLanguage();
+  const t = translations[currentLang] || translations.en;
+  
+  const fadeIn = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } } };
+  const staggerContainer = { hidden: {}, visible: { transition: { staggerChildren: 0.15 } } };
 
   return (
-    <div className="bg-white text-slate-900 antialiased">
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-8 text-center">
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_rgba(199,_210,_254,_0.3),_rgba(255,255,255,0))]"></div>
-        <motion.div initial="hidden" animate="visible" variants={fadeIn} className="z-10">
-          <h1 className="text-5xl font-extrabold tracking-tight md:text-8xl">
-            Own a Color. <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Build an Empire.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-slate-600 md:text-xl">
-            Welcome to ColorVerse, the world's first platform where all 16.7 million sRGB colors are unique, ownable digital assets.
-            This isn't just a project; it's the foundation of a new, universally accessible creator economy.
-          </p>
-          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link
-              href="/inscription"
-              className="transform rounded-lg bg-slate-900 px-10 py-5 text-lg font-semibold text-white shadow-xl transition-transform hover:scale-105 hover:bg-slate-800"
-            >
-              Claim Your First Color - Free
-            </Link>
-            <Link href="/marketplace" className="text-lg font-semibold text-purple-600 transition-colors hover:text-purple-800">
-              Explore the Live Marketplace →
-            </Link>
-          </div>
-          <motion.p 
-            className="mt-12 text-slate-500"
-            initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 1 } }}
-          >
-            Join <span className="font-semibold text-slate-700">thousands</span> of Guardians already building their collections.
-          </motion.p>
-        </motion.div>
-      </section>
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 antialiased" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
+      <Navbar t={t} />
 
-      <section className="py-20 px-8 md:py-32 text-center bg-slate-50">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.5 }} variants={fadeIn}>
-          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">A Universe of Meaning in Every Pixel.</h2>
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-slate-600">
-            Color is a universal language of culture, identity, and power. In ColorVerse, you don't just own a code; you own a symbol.
-          </p>
-        </motion.div>
-        <motion.div 
-            className="mt-16 max-w-4xl mx-auto"
-            initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeIn}
-        >
-            <div className="w-full h-48 md:h-64 rounded-xl shadow-2xl transition-colors duration-300" style={{ backgroundColor: hoveredColor }}></div>
-            <p className="mt-6 text-2xl font-mono font-bold tracking-widest">{hoveredColor.toUpperCase()}</p>
-            <p className="text-slate-500">This asset is unique in the universe.</p>
-        </motion.div>
-        <motion.div 
-            className="mt-12 grid grid-cols-[repeat(16,minmax(0,1fr))] gap-1 max-w-4xl mx-auto"
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ visible: { transition: { staggerChildren: 0.005 } } }}
-        >
-            {Array.from({ length: 256 }).map((_, i) => {
-                const cellColor = getColorForCell(i);
-                return (
-                    <motion.div 
-                        key={i} 
-                        className="aspect-square rounded-sm cursor-pointer transition-transform hover:scale-150 hover:z-10"
-                        style={{ backgroundColor: cellColor, border: '1px solid rgba(255,255,255,0.2)' }}
-                        onMouseEnter={() => setHoveredColor(cellColor)}
-                        variants={{ hidden: { opacity: 0, scale: 0.5 }, visible: { opacity: 1, scale: 1 } }}
-                    />
-                );
-            })}
-        </motion.div>
-      </section>
-      
-      <section className="py-20 px-8 md:py-32">
-        <div className="mx-auto max-w-7xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center">
-            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">From Pixels to Portfolios: The ColorVerse Thesis</h2>
-            <p className="mx-auto mt-6 max-w-3xl text-lg text-slate-600">
-              ColorVerse sits at the intersection of three powerful market trends: digital collectibles, the creator economy, and the search for accessible, meaningful assets. This is not just art; it's infrastructure.
-            </p>
+      <main className="flex-grow">
+        <section className="relative flex items-center justify-center min-h-[calc(100vh-64px)] overflow-hidden p-6 text-center bg-white">
+          <div className="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(circle_at_center,_rgba(199,_210,_254,_0.5),_rgba(255,255,255,0))]"></div>
+          <motion.div initial="hidden" animate="visible" variants={fadeIn} className="z-10 max-w-4xl">
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-7xl leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700">{t.heroTitle}</h1>
+            <p className="mx-auto mt-5 max-w-3xl text-md text-slate-600 md:text-lg">{t.heroDescription}</p>
+            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <Link href="/inscription" className="transform rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition-transform hover:scale-105">{t.heroClaimCTA}</Link>
+              <Link href="/marketplace" className="font-semibold text-purple-600 transition-colors hover:text-purple-800">{t.heroExploreCTA}</Link>
+            </div>
+            <motion.p className="mt-10 text-sm text-slate-500" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.8, duration: 0.5 } }}>{t.heroJoinText}</motion.p>
           </motion.div>
-          <div className="mt-20 grid gap-12 md:grid-cols-3">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, delay: 0.1 }} variants={fadeIn}>
-              <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></FeatureIcon>
-              <h3 className="text-2xl font-bold">Digital Real Estate</h3>
-              <p className="mt-2 text-slate-600">Think of colors like domain names or plots of land in a digital city. They are finite, foundational, and their value grows as the ecosystem builds upon them. You're not buying a JPEG; you're securing a piece of the internet's fundamental fabric.</p>
+        </section>
+
+        <section className="py-16 px-6 md:py-20 bg-slate-100">
+           <div className="container mx-auto p-8 bg-white rounded-2xl shadow-xl border border-slate-200">
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}>
+                   <h2 className="text-3xl font-bold tracking-tight md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-teal-600 mb-6">{t.section1Title}</h2>
+                   <p className="text-md text-slate-600 mb-4">{t.section1Paragraph1}</p>
+                   <p className="text-md text-slate-600">{t.section1Paragraph2}</p>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+                    <Image src="https://images.pexels.com/photos/1631677/pexels-photo-1631677.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Vibrant Colors" width={600} height={400} className="rounded-xl shadow-2xl object-cover w-full h-80" />
+                </motion.div>
+              </div>
+           </div>
+        </section>
+
+        <section className="py-16 px-6 md:py-20 bg-white">
+           <div className="container mx-auto p-8 bg-slate-50 rounded-2xl shadow-xl border border-slate-200">
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center max-w-3xl mx-auto">
+                 <h2 className="text-3xl font-bold tracking-tight md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-green-700 mb-6">{t.flagsTitle}</h2>
+                 <p className="mb-4 text-md text-slate-600">{t.flagsText1}</p>
+                 <p className="text-md font-semibold text-slate-800">{t.flagsText3}</p>
+              </motion.div>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.5 }} variants={staggerContainer} className="mt-12 flex justify-center items-center gap-4 md:gap-8 flex-wrap">
+                {[ { name: 'USA', cols: FLAG_COLS_PER_FLAG_USA, rows: FLAG_ROWS_PER_FLAG_USA, func: getUSAFlagColor }, { name: 'MAROC', cols: FLAG_COLS_PER_FLAG_MOROCCO, rows: FLAG_ROWS_PER_FLAG_MOROCCO, func: getMoroccoFlagColor }, { name: 'CHINE', cols: FLAG_COLS_PER_FLAG_CHINA, rows: FLAG_ROWS_PER_FLAG_CHINA, func: getChinaFlagColor } ].map(flag => (
+                    <motion.div key={flag.name} variants={fadeIn} className="p-3 bg-white rounded-lg shadow-lg">
+                        <p className="text-sm font-semibold mb-2 text-slate-700 text-center">{flag.name}</p>
+                        <div className="grid" style={{ gridTemplateColumns: `repeat(${flag.cols}, ${FLAG_CELL_SIZE_VW_DESKTOP}vw)` }}>
+                            {Array.from({ length: flag.rows * flag.cols }).map((_, i) => (<div key={`${flag.name}-${i}`} className="aspect-square" style={{ backgroundColor: flag.func(Math.floor(i / flag.cols), i % flag.cols) }} />))}
+                        </div>
+                    </motion.div>
+                ))}
+              </motion.div>
+           </div>
+        </section>
+
+        <section className="py-16 px-6 md:py-20 bg-slate-100">
+          <div className="container mx-auto">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">{t.section2Title}</h2>
+              <p className="mx-auto mt-4 text-md text-slate-600">{t.section2Paragraph1}</p>
             </motion.div>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, delay: 0.2 }} variants={fadeIn}>
-               <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg></FeatureIcon>
-              <h3 className="text-2xl font-bold">A Platform, Not a Product</h3>
-              <p className="mt-2 text-slate-600">The colors themselves are just the first layer. The true value comes from the economic and creative platform we are building on top: palette creation, merchandise integration, faction rivalries, and a developer API. Your asset becomes more valuable as the platform grows.</p>
-            </motion.div>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, delay: 0.3 }} variants={fadeIn}>
-              <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg></FeatureIcon>
-              <h3 className="text-2xl font-bold">Market-Driven Value</h3>
-              <p className="mt-2 text-slate-600">Unlike centrally-priced items, the value of every color is discovered on our open, transparent marketplace. A color's price is a direct reflection of its rarity, aesthetic appeal, historical significance, and cultural relevance (its Influence Score).</p>
+            <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-12 grid gap-8 md:grid-cols-3">
+              <motion.div variants={fadeIn} className="text-center p-6 bg-white rounded-xl shadow-lg border hover:shadow-2xl transition-shadow duration-300">
+                <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" /></svg></FeatureIcon>
+                <h3 className="text-xl font-bold text-slate-800">{t.feature1Title}</h3><p className="mt-2 text-sm text-slate-600">{t.feature1Text}</p>
+              </motion.div>
+              <motion.div variants={fadeIn} className="text-center p-6 bg-white rounded-xl shadow-lg border hover:shadow-2xl transition-shadow duration-300">
+                 <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h6.375a.375.375 0 01.375.375v1.5a.375.375 0 01-.375.375H9a.375.375 0 01-.375-.375v-1.5A.375.375 0 019 6.75zM9 12.75h6.375a.375.375 0 01.375.375v1.5a.375.375 0 01-.375.375H9a.375.375 0 01-.375-.375v-1.5A.375.375 0 019 12.75z" /></svg></FeatureIcon>
+                <h3 className="text-xl font-bold text-slate-800">{t.feature2Title}</h3><p className="mt-2 text-sm text-slate-600">{t.feature2Text}</p>
+              </motion.div>
+              <motion.div variants={fadeIn} className="text-center p-6 bg-white rounded-xl shadow-lg border hover:shadow-2xl transition-shadow duration-300">
+                <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg></FeatureIcon>
+                <h3 className="text-xl font-bold text-slate-800">{t.feature3Title}</h3><p className="mt-2 text-sm text-slate-600">{t.feature3Text}</p>
+              </motion.div>
             </motion.div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-slate-50 py-20 px-8 md:py-32">
-        <div className="mx-auto max-w-7xl">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center">
-                <h2 className="text-4xl font-bold tracking-tight md:text-5xl">More Than an Asset, It's an Identity.</h2>
-                <p className="mx-auto mt-6 max-w-3xl text-lg text-slate-600">ColorVerse is a platform for everyone who understands the power of aesthetics, community, and ownership.</p>
-            </motion.div>
-            <div className="mt-20 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl bg-white p-8 shadow-lg">
-                    <h3 className="text-2xl font-bold">For Collectors</h3>
-                    <p className="mt-4 text-slate-600">Hunt for iconic colors, assemble aesthetically perfect palettes, and own a piece of digital history. Your gallery is your museum.</p>
-                </div>
-                <div className="rounded-xl bg-white p-8 shadow-lg">
-                    <h3 className="text-2xl font-bold">For Creators</h3>
-                    <p className="mt-4 text-slate-600">Use your owned colors to mint unique digital art, design themes, and launch physical merchandise. Your colors are your brand.</p>
-                </div>
-                 <div className="rounded-xl bg-white p-8 shadow-lg">
-                    <h3 className="text-2xl font-bold">For Brands</h3>
-                    <p className="mt-4 text-slate-600">Secure your brand's official colors (`#1DA1F2` for Twitter, `#FF0000` for Netflix). Owning your color is the ultimate statement of brand identity in the digital age.</p>
-                </div>
-                 <div className="rounded-xl bg-white p-8 shadow-lg">
-                    <h3 className="text-2xl font-bold">For Developers</h3>
-                    <p className="mt-4 text-slate-600">Leverage our future API to build applications where color ownership matters. Imagine a game where your character's gear color is determined by your ColorVerse assets.</p>
+        <section className="py-16 px-6 md:py-20 bg-white">
+          <div className="container mx-auto">
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center max-w-3xl mx-auto">
+                  <h2 className="text-3xl font-bold tracking-tight md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-orange-600">{t.section3Title}</h2>
+                  <p className="mx-auto mt-4 text-md text-slate-600">{t.section3Paragraph2}</p>
+              </motion.div>
+              <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                  {[ { title: t.collectorsTitle, text: "Embark on a hunt for iconic colors. Assemble unparalleled palettes that reflect your unique vision and become the owner of a tangible fragment of digital history.", icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg> }, { title: t.creatorsTitle, text: "Unleash your imagination: use your colors to mint original digital art, design visual themes, and launch exclusive lines of physical products.", icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.572L16.5 21.75l-.398-1.178a3.375 3.375 0 00-2.456-2.456L12.5 18l1.178-.398a3.375 3.375 0 002.456-2.456L16.5 14.25l.398 1.178a3.375 3.375 0 002.456 2.456L20.5 18l-1.178.398a3.375 3.375 0 00-2.456 2.456z" /></svg> }, { title: t.brandsTitle, text: "Secure your brand's definitive visual identity by owning its official colors. Possessing your unique color in ColorVerse is the ultimate statement of brand identity in the digital age.", icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> }, { title: t.developersTitle, text: "Leverage our open API to build groundbreaking applications where color ownership becomes a core game mechanic, a central feature, or a transformative utility.", icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" /></svg> } ].map(item =>(
+                      <motion.div key={item.title} variants={fadeIn} className="rounded-xl bg-slate-50 p-6 shadow-lg border hover:-translate-y-2 transition-transform duration-300">
+                          <div className="flex items-center space-x-4 mb-3"><div className="bg-orange-100 text-orange-600 p-2 rounded-lg">{item.icon}</div><h3 className="text-lg font-bold text-slate-800">{item.title}</h3></div>
+                          <p className="text-sm text-slate-600">{item.text}</p>
+                      </motion.div>
+                  ))}
+              </motion.div>
+          </div>
+        </section>
+
+        <section className="bg-white py-16 px-6 md:py-20" id="faq">
+            <div className="container mx-auto max-w-3xl">
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center">
+                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600">{t.faqTitle}</h2>
+                    <p className="mx-auto mt-4 text-md text-slate-600">{t.faqParagraph1}</p>
+                </motion.div>
+                <div className="mt-12 space-y-4">
+                    <FAQItem title="Is this a cryptocurrency or blockchain-based?">{"No. This is a deliberate choice. ColorVerse is built on scalable web technologies to guarantee an exceptional user experience without the frictions of blockchain, such as gas fees or complex wallets."}</FAQItem>
+                    <FAQItem title="Difference between #FF0000 and #FE0000?">{"Functionally, they are two distinct digital assets. Aesthetically, they are almost identical. This creates a fascinating market dynamic, allowing for both exclusive luxury collection and broad mass accessibility."}</FAQItem>
+                    <FAQItem title="How does the marketplace work?">{"It's a peer-to-peer platform. To ensure sustainability, we collect a modest transaction fee of 7% from the seller upon a successful sale. There are no fees for listing or browsing."}</FAQItem>
+                    <FAQItem title="Is my asset likely to be lost?">{"Ownership is securely linked to your account. As long as you maintain control over your credentials (using a strong password), your digital assets are safe. We've implemented state-of-the-art security practices."}</FAQItem>
+                    <FAQItem title="Are ColorVerse colors a financial security?">{"No. ColorVerse assets must be considered unique digital collectibles, not speculative investments. Their value is subject to market dynamics and there is no guarantee of financial return. Participate for the passion, not for speculation."}</FAQItem>
                 </div>
             </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="py-20 px-8 md:py-32">
-          <div className="mx-auto max-w-6xl">
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center">
-                  <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Built for Scale, Security, and Simplicity.</h2>
-                  <p className="mx-auto mt-6 max-w-3xl text-lg text-slate-600">
-                      We chose a rock-solid, modern tech stack to ensure a seamless experience that can grow to millions of users without the friction of blockchain.
-                  </p>
-              </motion.div>
-              <div className="mt-20 grid md:grid-cols-3 gap-12 text-center">
-                  <div>
-                      <h3 className="text-2xl font-bold">Scalable Backend by Supabase</h3>
-                      <p className="mt-2 text-slate-600">Our entire ledger of color ownership is managed by a high-performance Postgres database, ensuring millisecond response times and ironclad data integrity.</p>
-                  </div>
-                  <div>
-                      <h3 className="text-2xl font-bold">Blazing-Fast Frontend by Vercel</h3>
-                      <p className="mt-2 text-slate-600">The site is built with Next.js and hosted on Vercel's global edge network, delivering an instant, responsive experience anywhere in the world.</p>
-                  </div>
-                  <div>
-                      <h3 className="text-2xl font-bold">Secure Payments by Stripe</h3>
-                      <p className="mt-2 text-slate-600">All marketplace transactions are handled by Stripe, the gold standard in online payments, ensuring your financial data is always secure. (Future integration)</p>
-                  </div>
-              </div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="mt-24 rounded-2xl bg-slate-50 p-12 text-center">
-                  <h3 className="text-3xl font-bold">Our Foundational Promise</h3>
-                  <p className="mx-auto mt-6 max-w-3xl text-lg text-slate-700">
-                      "We are not just builders; we are guardians of this new economy. Our commitment is absolute: the supply of colors will never change. The platform will be governed by fairness and transparency. The community's creativity will be our most valued asset. We are in this for the long-term, to build a universe that outlasts us all."
-                  </p>
-                  <p className="mt-6 font-semibold text-slate-900">- The Founders of ColorVerse</p>
-              </motion.div>
-          </div>
-      </section>
+        <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-16 px-6 text-center text-white">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="container mx-auto">
+            <h2 className="text-4xl font-extrabold tracking-tight">{t.finalCtaTitle}</h2>
+            <div className="mt-6 flex flex-col md:flex-row justify-center items-center gap-6 text-lg font-medium">
+              <span>{t.finalCtaTagline1}</span><span>{t.finalCtaTagline2}</span><span>{t.finalCtaTagline3}</span>
+            </div>
+            <p className="mx-auto mt-5 max-w-2xl text-md text-blue-100">{t.finalCtaParagraph}</p>
+            <div className="mt-10">
+              <Link href="/inscription" className="transform rounded-full bg-white px-10 py-4 text-lg font-bold text-blue-700 shadow-2xl transition-transform hover:scale-105 hover:bg-slate-200">{t.finalCtaButton}</Link>
+            </div>
+          </motion.div>
+        </section>
+      </main>
 
-      <section className="bg-slate-50 py-20 px-8 md:py-32">
-          <div className="mx-auto max-w-4xl">
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center">
-                  <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Your Questions, Answered.</h2>
-              </motion.div>
-              <div className="mt-16 space-y-8">
-                  <FAQItem title="Is this a cryptocurrency or on a blockchain?">No. Deliberately. ColorVerse is built on scalable, centralized web technologies to ensure a fast, user-friendly experience without gas fees, wallet complexities, or significant environmental impact. Ownership is secured and verified within our robust database architecture, providing all the benefits of ownership without the barriers.</FAQItem>
-                  <FAQItem title="What's the difference between owning `#FF0000` and `#FE0000`?">Functionally, they are two distinct, unique assets in the ColorVerse ledger. Aesthetically, they are nearly identical. This creates a fascinating market dynamic. While `#FF0000` (Pure Red) is an iconic, "named" color and likely highly valuable, its neighbor might be an affordable entry point for someone who loves red. This allows for both high-end collecting and mass accessibility.</FAQItem>
-                  <FAQItem title="How does the marketplace work and what are the fees?">The marketplace is a peer-to-peer platform. Owners can list their colors for a fixed price or, in the future, via auction. To sustain the platform, we take a small, transparent transaction fee (e.g., 2.5%) from the seller upon a successful sale. There are no fees for listing or browsing.</FAQItem>
-                  <FAQItem title="Can I lose my color?">Your ownership is tied to your secure account. As long as you maintain control of your account credentials (using a strong, unique password), your assets are safe. We use industry-standard security practices to protect all user accounts.</FAQItem>
-                  <FAQItem title="Is this a financial security?">ColorVerse assets should be considered digital collectibles. Their value is subject to market dynamics and there is no guarantee of financial return. Please collect responsibly. This is a platform for art, community, and creativity first and foremost.</FAQItem>
-              </div>
-          </div>
-      </section>
-
-      <section className="bg-gradient-to-r from-purple-600 to-indigo-600 py-20 px-8 text-center text-white">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}>
-          <h2 className="text-5xl font-extrabold tracking-tight">Your Legacy Starts With a Single Color.</h2>
-          <div className="mt-8 flex justify-center items-center gap-8 text-lg">
-            <span>✓ Absolute Scarcity</span>
-            <span>✓ Ground-Floor Opportunity</span>
-            <span>✓ A Thriving Community</span>
-          </div>
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-indigo-100">
-            History is being written. The foundational assets of this new universe are being claimed right now.
-            Registration is free, your first color is a gift, and the opportunity is immense. Don't be a footnote in the story of ColorVerse. Be a founder.
-          </p>
-          <div className="mt-12">
-            <Link
-              href="/inscription"
-              className="transform rounded-lg bg-white px-12 py-5 text-xl font-bold text-purple-700 shadow-2xl transition-transform hover:scale-105 hover:bg-slate-200"
-            >
-              Become a Guardian. Shape the Future.
-            </Link>
-          </div>
-        </motion.div>
-      </section>
+      <Footer t={t} />
     </div>
   );
 }
@@ -261,20 +160,20 @@ export default function HomePage() {
 function FAQItem({ title, children }: { title: string, children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
-        <div className="border-b border-slate-200 pb-4">
-            <button className="flex w-full items-center justify-between text-left py-2" onClick={() => setIsOpen(!isOpen)}>
-                <span className="text-xl font-semibold text-slate-800">{title}</span>
-                <span className={`transform text-purple-600 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </span>
+        <div className="border rounded-lg overflow-hidden bg-slate-50/50 border-slate-200">
+            <button className="flex w-full items-center justify-between text-left p-4" onClick={() => setIsOpen(!isOpen)}>
+                <span className="text-md font-semibold text-slate-800">{title}</span>
+                <motion.span animate={{ rotate: isOpen ? 180 : 0 }} className="text-purple-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </motion.span>
             </button>
-            <motion.div
-                initial={false}
-                animate={{ height: isOpen ? 'auto' : 0, marginTop: isOpen ? '16px' : '0px', opacity: isOpen ? 1 : 0 }}
-                className="overflow-hidden"
-            >
-                <p className="text-slate-600 text-lg">{children}</p>
-            </motion.div>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                        <p className="text-slate-600 text-md p-4 pt-0">{children}</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

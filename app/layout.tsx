@@ -4,9 +4,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-// Importation corrigée pour le SessionProvider
-// Assurez-vous que le fichier SessionProvider.tsx se trouve bien dans le dossier /components
 import SessionProvider from "@/components/SessionProvider"; 
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,12 +22,11 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={inter.className}>
-        {/* Le SessionProvider enveloppe toute votre application. */}
-        {/* Cela permet de rendre les données de session accessibles partout. */}
         <SessionProvider>
-          <main className="min-h-screen bg-[#0A0A0A] text-white">
+          <LanguageProvider>
+            {/* Il n'y a plus de <main> ici. Les pages géreront leur propre balise <main>. */}
             {children}
-          </main>
+          </LanguageProvider>
         </SessionProvider>
       </body>
     </html>
