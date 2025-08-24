@@ -2,7 +2,6 @@
 'use client';
 
 import Link from 'next/link';
-// CHANGEMENT : framer-motion a été complètement retiré
 import { useState } from 'react';
 import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
@@ -10,7 +9,7 @@ import Footer from '@/components/layout/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translations } from '@/lib/translations';
 
-// --- Composant d'Icône (sans animation pour simplifier) ---
+// --- Composant d'Icône (sans animation) ---
 const FeatureIcon = ({ children }: { children: React.ReactNode }) => (
   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 text-purple-600 shadow-lg">
     {children}
@@ -28,8 +27,6 @@ export default function HomePage() {
   const { currentLang } = useLanguage();
   const t = translations[currentLang] || translations.en;
 
-  // CHANGEMENT : Les variantes d'animation ont été supprimées.
-
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 antialiased" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
       <Navbar t={t} />
@@ -37,7 +34,6 @@ export default function HomePage() {
       <main className="flex-grow">
         <section className="relative flex items-center justify-center min-h-[calc(100vh-64px)] overflow-hidden p-6 text-center bg-white">
           <div className="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(circle_at_center,_rgba(199,_210,_254,_0.5),_rgba(255,255,255,0))]"></div>
-          {/* CHANGEMENT : <motion.div> est devenu un <div> normal */}
           <div className="z-10 max-w-4xl">
             <h1 className="text-4xl font-extrabold tracking-tight md:text-7xl leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700">{t.heroTitle}</h1>
             <p className="mx-auto mt-5 max-w-3xl text-md text-slate-600 md:text-lg">{t.heroDescription}</p>
@@ -57,14 +53,14 @@ export default function HomePage() {
                    <p className="text-md text-slate-600 mb-4">{t.section1Paragraph1}</p>
                    <p className="text-md text-slate-600">{t.section1Paragraph2}</p>
                 </div>
-                {/* CHANGEMENT : Ajout d'une transition CSS simple pour l'image */}
                 <div className="overflow-hidden rounded-xl">
                     <Image src="https://images.pexels.com/photos/1631677/pexels-photo-1631677.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Vibrant Colors" width={600} height={400} className="rounded-xl shadow-2xl object-cover w-full h-80 transition-transform duration-500 ease-in-out hover:scale-110" />
                 </div>
               </div>
            </div>
         </section>
-
+        
+        {/* Le reste du fichier reste identique, car il n'utilise pas d'animations complexes */}
         <section className="py-16 px-6 md:py-20 bg-white">
            <div className="container mx-auto p-8 bg-slate-50 rounded-2xl shadow-xl border border-slate-200">
               <div className="text-center max-w-3xl mx-auto">
@@ -74,7 +70,6 @@ export default function HomePage() {
               </div>
               <div className="mt-12 flex justify-center items-center gap-4 md:gap-8 flex-wrap">
                 {[ { name: 'USA', cols: FLAG_COLS_PER_FLAG_USA, rows: FLAG_ROWS_PER_FLAG_USA, func: getUSAFlagColor }, { name: 'MAROC', cols: FLAG_COLS_PER_FLAG_MOROCCO, rows: FLAG_ROWS_PER_FLAG_MOROCCO, func: getMoroccoFlagColor }, { name: 'CHINE', cols: FLAG_COLS_PER_FLAG_CHINA, rows: FLAG_ROWS_PER_FLAG_CHINA, func: getChinaFlagColor } ].map(flag => (
-                    // CHANGEMENT : Ajout d'une transition au survol
                     <div key={flag.name} className="p-3 bg-white rounded-lg shadow-lg transition-transform duration-300 hover:-translate-y-2">
                         <p className="text-sm font-semibold mb-2 text-slate-700 text-center">{flag.name}</p>
                         <div className="grid" style={{ gridTemplateColumns: `repeat(${flag.cols}, ${FLAG_CELL_SIZE_VW_DESKTOP}vw)` }}>
@@ -93,7 +88,6 @@ export default function HomePage() {
               <p className="mx-auto mt-4 text-md text-slate-600">{t.section2Paragraph1}</p>
             </div>
             <div className="mt-12 grid gap-8 md:grid-cols-3">
-              {/* CHANGEMENT : Les cartes ont déjà des transitions CSS, c'est parfait. */}
               <div className="text-center p-6 bg-white rounded-xl shadow-lg border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <FeatureIcon><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" /></svg></FeatureIcon>
                 <h3 className="text-xl font-bold text-slate-800">{t.feature1Title}</h3><p className="mt-2 text-sm text-slate-600">{t.feature1Text}</p>
@@ -162,19 +156,16 @@ export default function HomePage() {
   );
 }
 
-// CHANGEMENT : FAQItem simplifié. L'animation fluide est retirée pour garantir le build.
 function FAQItem({ title, children }: { title: string, children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className="border rounded-lg overflow-hidden bg-slate-50/50 border-slate-200">
             <button className="flex w-full items-center justify-between text-left p-4" onClick={() => setIsOpen(!isOpen)}>
                 <span className="text-md font-semibold text-slate-800">{title}</span>
-                {/* CHANGEMENT : Ajout d'une transition CSS à l'icône */}
                 <span className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </span>
             </button>
-            {/* CHANGEMENT : Le contenu s'affiche ou se masque instantanément */}
             {isOpen && (
                 <div className="overflow-hidden">
                     <p className="text-slate-600 text-md p-4 pt-0">{children}</p>

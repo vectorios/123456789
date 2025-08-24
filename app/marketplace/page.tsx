@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+// CHANGEMENT : framer-motion a été retiré
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -51,27 +51,20 @@ export default function MarketplacePage() {
     fetchListings();
   }, []);
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  // CHANGEMENT : Les variantes d'animation ont été supprimées.
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
       <Navbar t={t} />
 
       <main className="container mx-auto p-4 md:p-8 flex-grow">
-        <motion.header 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
+        {/* CHANGEMENT : <motion.header> remplacé par <header> */}
+        <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
             {t.marketTitle}
           </h1>
           <p className="text-slate-500 mt-2">{t.marketSubtitle}</p>
-        </motion.header>
+        </header>
 
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
@@ -84,14 +77,10 @@ export default function MarketplacePage() {
             <p className="text-xl text-slate-500">{t.marketEmpty}</p>
           </div>
         ) : (
-          <motion.div 
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
-            initial="hidden"
-            animate="visible"
-            variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {listings.map((listing) => (
-              <motion.div key={listing.id} variants={cardVariants}>
+              // L'animation est déjà gérée par les classes `transition` sur le Link
+              <div key={listing.id}>
                 <Link href={`/marketplace/${listing.id}`} className="group block bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden h-full hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                   <div 
                     className="h-32 w-full border-b"
@@ -115,9 +104,9 @@ export default function MarketplacePage() {
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </main>
 
