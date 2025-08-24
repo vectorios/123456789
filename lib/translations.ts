@@ -1,4 +1,20 @@
-export const translations = {
+// --- ÉTAPE 1 : Définir le type pour une langue ---
+// Cela liste toutes les clés de traduction possibles.
+type TranslationSet = {
+  [key: string]: string; // Permet d'ajouter des clés sans erreur
+};
+
+// --- ÉTAPE 2 : Définir le type pour l'objet de traductions complet ---
+// Il peut être indexé par 'en', 'ar', ou 'zh'.
+type Translations = {
+  [key: string]: TranslationSet;
+  en: TranslationSet;
+  ar: TranslationSet;
+  zh: TranslationSet;
+};
+
+// --- ÉTAPE 3 : Appliquer le type à votre objet ---
+export const translations: Translations = {
   en: {
     langSwitcher: "Language",
     langEnglish: "English",
