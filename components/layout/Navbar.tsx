@@ -3,11 +3,10 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react'; // signOut a été importé
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-// La Navbar reçoit 't' (l'objet de traduction) en props
 export default function Navbar({ t }: { t: any }) {
   const { setCurrentLang } = useLanguage();
   const { data: session } = useSession();
@@ -16,7 +15,6 @@ export default function Navbar({ t }: { t: any }) {
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // 't' est maintenant défini et peut être utilisé ici
   const menuItems = [
     { name: t.sidebarMenuMarket, href: "/marketplace" },
     { name: t.sidebarMenuGallery, href: "/dashboard" },
@@ -52,15 +50,14 @@ export default function Navbar({ t }: { t: any }) {
               <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} className="flex items-center text-slate-600 hover:text-purple-600">
                 <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502Z" /></svg>
               </button>
-                {isLangDropdownOpen && (
-                  <div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-0 mt-2 w-40 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    <div className="py-1">
-                      <button onClick={() => handleLangChange('en')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.langEnglish}</button>
-                      <button onClick={() => handleLangChange('ar')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.langArabic}</button>
-                      <button onClick={() => handleLangChange('zh')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.langChinese}</button>
-                    </div>
-                  </div>
-                )}
+              {/* CHANGEMENT : Remplacement de l'animation par une transition CSS */}
+              <div className={`absolute right-0 mt-2 w-40 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-out ${isLangDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                <div className="py-1">
+                  <button onClick={() => handleLangChange('en')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.langEnglish}</button>
+                  <button onClick={() => handleLangChange('ar')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.langArabic}</button>
+                  <button onClick={() => handleLangChange('zh')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.langChinese}</button>
+                </div>
+              </div>
             </div>
 
             {session?.user ? (
@@ -68,15 +65,14 @@ export default function Navbar({ t }: { t: any }) {
                 <button onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}>
                   <Image src={session.user.image || `https://ui-avatars.com/api/?name=${session.user.name || session.user.email}&background=random`} alt="User" width={32} height={32} className="rounded-full" />
                 </button>
-                  {isProfileDropdownOpen && (
-                    <div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div className="py-1">
-                        <div className="px-4 py-2 border-b"><p className="text-sm font-medium text-gray-900 truncate">{session.user.name || session.user.email}</p></div>
-                        <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.sidebarProfile}</Link>
-                        <button onClick={() => signOut({ callbackUrl: '/' })} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.sidebarLogout}</button>
-                      </div>
-                    </div>
-                  )}
+                {/* CHANGEMENT : Remplacement de l'animation par une transition CSS */}
+                <div className={`absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-out ${isProfileDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                  <div className="py-1">
+                    <div className="px-4 py-2 border-b"><p className="text-sm font-medium text-gray-900 truncate">{session.user.name || session.user.email}</p></div>
+                    <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.sidebarProfile}</Link>
+                    <button onClick={() => signOut({ callbackUrl: '/' })} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{t.sidebarLogout}</button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-2">
@@ -91,16 +87,15 @@ export default function Navbar({ t }: { t: any }) {
             </div>
           </div>
         </div>
-          {isMenuOpen && (
-            <div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="md:hidden bg-white border-t border-slate-200">
-              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                {menuItems.map(item => ( <Link key={item.name} href={item.href} className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-purple-600">{item.name}</Link>))}
-                <div className="border-t border-slate-200 pt-4 mt-4 px-3 flex items-center space-x-4">
-                  {!session && ( <> <Link href="/connexion" className="flex-1 text-center px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-full">{t.sidebarLogin}</Link> <Link href="/inscription" className="flex-1 text-center px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full">{t.sidebarSignup}</Link> </> )}
-                </div>
-              </div>
+        {/* CHANGEMENT : Remplacement de l'animation par une transition CSS */}
+        <div className={`md:hidden bg-white border-t border-slate-200 overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96' : 'max-h-0'}`}>
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {menuItems.map(item => ( <Link key={item.name} href={item.href} className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-purple-600">{item.name}</Link>))}
+            <div className="border-t border-slate-200 pt-4 mt-4 px-3 flex items-center space-x-4">
+              {!session && ( <> <Link href="/connexion" className="flex-1 text-center px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-full">{t.sidebarLogin}</Link> <Link href="/inscription" className="flex-1 text-center px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-full">{t.sidebarSignup}</Link> </> )}
             </div>
-          )}
+          </div>
+        </div>
       </div>
     </header>
   );

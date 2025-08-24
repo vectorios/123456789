@@ -1,3 +1,4 @@
+// app/inscription/page.tsx
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+// CHANGEMENT : framer-motion a été retiré
 
 const getRandomHexColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
 
@@ -21,6 +22,7 @@ const Shape = ({ shape, color, size }: { shape: string; color: string; size: num
   }
 };
 
+// CHANGEMENT : L'animation des particules a été retirée pour garantir la compilation
 const ParticleBackground = ({ count = 150 }) => {
   const particles = useMemo(() => {
     const shapes = ['square', 'circle', 'triangle'];
@@ -35,23 +37,15 @@ const ParticleBackground = ({ count = 150 }) => {
       size: Math.random() * 6 + 4,
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
-      animationDelay: `${Math.random() * 5}s`,
     }));
   }, [count]);
 
   return (
-    <div className="absolute inset-0 z-0 h-full w-full overflow-hidden">
+    <div className="absolute inset-0 z-0 h-full w-full overflow-hidden opacity-50">
       {particles.map(p => (
-        <motion.div
-          key={p.id}
-          className="absolute"
-          style={{ top: p.top, left: p.left }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: [0, 1, 1, 0, 0], scale: 1 }}
-          transition={{ duration: 5, ease: 'easeInOut', repeat: Infinity, delay: parseFloat(p.animationDelay) }}
-        >
+        <div key={p.id} className="absolute" style={{ top: p.top, left: p.left }}>
           <Shape shape={p.shape} color={p.color} size={p.size} />
-        </motion.div>
+        </div>
       ))}
     </div>
   );
@@ -78,7 +72,6 @@ export default function SignUpPage() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -86,24 +79,19 @@ export default function SignUpPage() {
         body: JSON.stringify(data),
       });
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.error || "An error occurred during creation.");
       }
-      
       const signInResponse = await signIn('credentials', {
         email: data.email,
         password: data.password,
         redirect: false,
       });
-
       if (signInResponse?.error) {
         throw new Error("Error during automatic sign-in after registration.");
       }
-
       const colorHex = result.color_hex.replace('#', '');
       router.push(`/welcome/${colorHex}`);
-
     } catch (err: any) {
       setError(err.message);
       setIsLoading(false);
@@ -112,12 +100,8 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 sm-p-6 lg:p-8">
-      <motion.div 
-        className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl grid grid-cols-1 md:grid-cols-2"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
+      {/* CHANGEMENT : <motion.div> remplacé par <div> */}
+      <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl grid grid-cols-1 md:grid-cols-2">
         <div className="relative hidden flex-col justify-center bg-slate-900 p-12 text-white md:flex">
           <ParticleBackground />
           <div className="relative z-10">
@@ -125,13 +109,11 @@ export default function SignUpPage() {
             <p className="mt-4 text-lg text-slate-300">Complete the ritual to be granted your unique, foundational color.</p>
           </div>
         </div>
-
         <div className="flex flex-col justify-center p-8 sm:p-12">
           <div className="text-left">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Become a Guardian</h1>
             <p className="mt-2 text-slate-600">Claim your first color and start your collection.</p>
           </div>
-          
           <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
             <div>
               <label className="text-sm font-medium text-slate-700">Guardian Name</label>
@@ -143,7 +125,6 @@ export default function SignUpPage() {
               />
               {errors.username && <p className="text-red-600 text-xs mt-1">{errors.username.message}</p>}
             </div>
-            
             <div>
               <label className="text-sm font-medium text-slate-700">Email</label>
               <input 
@@ -154,7 +135,6 @@ export default function SignUpPage() {
               />
               {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email.message}</p>}
             </div>
-            
             <div>
               <label className="text-sm font-medium text-slate-700">Password</label>
               <div className="relative">
@@ -174,14 +154,11 @@ export default function SignUpPage() {
               </div>
               {errors.password && <p className="text-red-600 text-xs mt-1">{errors.password.message}</p>}
             </div>
-            
             {error && <p className="bg-red-100 text-red-700 text-sm text-center p-3 rounded-lg">{error}</p>}
-            
             <button type="submit" disabled={isLoading} className="w-full py-3 font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
               {isLoading ? 'Attribution in Progress...' : 'Reveal My Color'}
             </button>
           </form>
-
           <p className="mt-8 text-center text-sm text-slate-600">
             Already a Guardian?{' '}
             <Link href="/connexion" className="font-medium text-purple-600 hover:underline">
@@ -189,7 +166,7 @@ export default function SignUpPage() {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
-    );
+  );
 }
